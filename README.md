@@ -1,47 +1,15 @@
-const tx = JSON.parse(apiResponseAbove)
+let bjs = require('bitcoinjs-lib')
 
-let inputAddresses = []
-let inputs = tx.transaction.inputs
+let input = Buffer.from('160014e5e6cc9c155da3c9df725c3c4d9987c374e29987', 'hex')
+let witness = [
+  Buffer.from('30450221009f696a5c1bb1735bb3f1f64276ac6838c4e04b6c89b5eda84e86d24022d4f7ab02207caae352a19fe830dea60be2cd0a73af27e40124ca7f57ff9451887e81a7569d01', 'hex'),
+  Buffer.from('035c618df829af694cb99e664ce1b34f80ad2c3b49bcd0d9c0b1836c66b2d25fd8', 'hex')
+]
 
-inputs.forEach(input => {
+let p2sh = bjs.payments.p2sh({ input, witness })
+console.log(p2sh.address)
+// bc1qwj7k0zvvxsrhf4x2z3frar5gp6et24anksdqjj
 
-  let scriptSigChunks = input.script_sig.asm.split(/\s+/)
-  if (scriptSigChunks[0] === '') scriptSigChunks = []
-
-  if(input.witness === null) {
-    console.log('not segwit')
-    return
-  } else if(scriptSigChunks.length > 1) {
-    console.log('unknown input type: scriptSig is not P2SH but has witness')
-    return
-  } else if(scriptSigChunks.length === 0) {
-
-    // is not P2SH
-    let witnessScript = input.witness[input.witness.length - 1]
-    let witnessType
-    let pubKey
-    if (witnessScript.match(/^0[23][0-9a-fA-F]{64}$/)) {
-      pubKey = witnessScript
-      witnessType = 'P2WPKH'
-    } else {
-      witnessType = 'P2WSH'
-    }
-
-    // get address from the hash160 of pubKey OR the sha256 of witnessScript depending on P2WPKH or P2WSH respectively
-
-  } else {
-
-    // is P2SH
-    let redeemScript = scriptSigChunks[0]
-    let witnessScript = input.witness[input.witness.length - 1]
-    let witnessType
-    if (witnessScript.match(/^0[23][0-9a-fA-F]{64}$/)) {
-      witnessType = 'P2SH-P2WPKH'
-    } else {
-      witnessType = 'P2SH-P2WSH'
-    }
-
-    // get address from redeemScript hash160
-  }
-
-})
+let redeem = bjs.payments.p2wpkh(p2sh.redeem)
+console.log(redeem.address)
+bc1qwj7k0zvvxsrhf4x2z3frar5gp6et24anksdqjj
